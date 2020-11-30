@@ -26,9 +26,9 @@ CREATE TABLE `activity` (
   `id_activity` int NOT NULL AUTO_INCREMENT,
   `name_act` varchar(20) NOT NULL,
   `type_act` varchar(20) NOT NULL,
-  `photo_act` varchar(100) NOT NULL,
+  `photo_act` varchar(255) NOT NULL,
   `places` int NOT NULL,
-  `price` float NOT NULL,
+  `price` decimal(5,2) NOT NULL,
   `d_star` timestamp NOT NULL,
   `d_end` timestamp NOT NULL,
   `localition` varchar(50) NOT NULL,
@@ -85,13 +85,13 @@ CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `first_name` varchar(10) NOT NULL,
   `last_name` varchar(20) NOT NULL,
-  `email` varchar(40) NOT NULL,
-  `passwords` varchar(16) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `passwords` varchar(255) NOT NULL,
   `dni` varchar(9) NOT NULL,
   `tlfn` varchar(12) NOT NULL,
   `b_day` date NOT NULL,
   `bio` varchar(200) DEFAULT NULL,
-  `photo_user` varchar(100) NOT NULL,
+  `photo_user` varchar(255) NOT NULL,
   `user_type` char(1) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -115,4 +115,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-28 20:50:10
+-- Dump completed on 2020-11-29 21:48:25
