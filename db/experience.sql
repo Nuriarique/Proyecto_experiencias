@@ -53,12 +53,10 @@ DROP TABLE IF EXISTS `register_contract_activity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `register_contract_activity` (
-  `id_contract` int NOT NULL AUTO_INCREMENT,
   `id_user` int NOT NULL,
   `id_activity` int NOT NULL,
   `rating` int NOT NULL,
-  PRIMARY KEY (`id_contract`),
-  KEY `id_user` (`id_user`),
+  PRIMARY KEY (`id_user`,`id_activity`),
   KEY `id_activity` (`id_activity`),
   CONSTRAINT `register_contract_activity_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id`),
   CONSTRAINT `register_contract_activity_ibfk_2` FOREIGN KEY (`id_activity`) REFERENCES `activity` (`id_activity`)
@@ -115,4 +113,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-29 21:48:25
+-- Dump completed on 2020-12-03 14:47:05
