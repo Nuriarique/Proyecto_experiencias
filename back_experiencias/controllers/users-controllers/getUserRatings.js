@@ -9,6 +9,7 @@ async function getUserRatings(req, res, next) {
     const noValoratedFilter = noValorated.filter(
       (noValorated, index) => index < 2
     );
+    
     const valorated = await repository.valorate(id);
     const valoratedFilter = valorated.filter((Valorated, index) => index < 2);
 

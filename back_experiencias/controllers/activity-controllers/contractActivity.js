@@ -1,23 +1,41 @@
 "use strict";
 const Joi = require("joi");
 const repository = require("../../repositories/activity-repository");
+const { isBefore } = require("date-fns");
 
 async function contractActivity(req, res, next) {
   try {
-    const { id } = req.params; //req.auth
+    const { actId } = req.params;
     const schema = Joi.number().positive();
-    await schema.validateAsync(id);
+    await schema.validateAsync(actId);
 
-    //Si estan todas las plazs ocupadas no se puede contratar
-    const places = await repository.getPlaces(id);
+    //comprobar que existe la actividad
+    const act = await repository.getActivity(actId);
+    if (!act) {
+      const error = new Error("Actividad no encontrada");
+      error.status = 404;
+      throw error;
+    }
+
+    // Comprobamos que la actividad no ha pasado de fecha
+    const now = new Date();
+    const before = isBefore(act.d_start, now);
+    if (before) {
+      const error = new Error("Actividad no disponible, ya ha pasado la fecha");
+      error.status = 400;
+      throw error;
+    } 
+
+    //Si estan todas las plazas ocupadas no se puede contratar
+    const places = await repository.getPlaces(actId);
     if ((places.PlazasLibres = 0)) {
       const error = new Error("No quedan plazas libres");
       error.status = 400;
       throw error;
     }
 
-    const resumen = await repository.contract(id);
-    res.send(resumen);
+    const resumen = await repository.preContract(actId);
+    res.send({ resumen });
   } catch (error) {
     next(error);
   }

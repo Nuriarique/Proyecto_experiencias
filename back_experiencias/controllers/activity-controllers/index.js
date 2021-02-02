@@ -6,6 +6,8 @@ const updateAct = require("./updateAct");
 const deleteAct = require("./deleteAct");
 const contractActivity = require("./contractActivity");
 const confirmContract = require("./confirmContract");
+const search = require("./search");
+const home = require("./home");
 
 module.exports = {
   createAct,
@@ -15,4 +17,6 @@ module.exports = {
   deleteAct,
   contractActivity,
   confirmContract,
+  search,
+  home,
 };

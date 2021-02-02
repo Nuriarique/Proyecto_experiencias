@@ -1,4 +1,5 @@
 "use stric";
+//! Comprobar en front si es necesaria esta ruta
 
 const repository = require("../../repositories/users-repository");
 

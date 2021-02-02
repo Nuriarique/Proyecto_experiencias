@@ -32,9 +32,13 @@ CREATE TABLE `activity` (
   `places` int NOT NULL,
   `price` decimal(5,2) NOT NULL,
   `d_start` timestamp NOT NULL,
-  `localition` varchar(255) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `photo2` varchar(255) DEFAULT NULL,
+  `photo3` varchar(255) DEFAULT NULL,
+  `photo4` varchar(255) DEFAULT NULL,
+  `photo5` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_activity`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,8 +68,8 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `first_name` varchar(10) NOT NULL,
-  `last_name` varchar(20) DEFAULT NULL,
+  `first_name` varchar(25) NOT NULL,
+  `last_name` varchar(25) DEFAULT NULL,
   `b_day` date NOT NULL,
   `email` varchar(255) NOT NULL,
   `passwords` varchar(255) NOT NULL,
@@ -75,8 +79,10 @@ CREATE TABLE `users` (
   `photo_user` varchar(255) DEFAULT NULL,
   `sexo` char(1) DEFAULT NULL,
   `user_type` char(1) DEFAULT 'U',
+  `status` tinyint NOT NULL DEFAULT '0',
+  `veification_code` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -88,4 +94,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-01-10 17:39:22
+-- Dump completed on 2021-02-02 10:38:26

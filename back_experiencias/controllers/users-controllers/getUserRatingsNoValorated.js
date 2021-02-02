@@ -1,4 +1,6 @@
 "use strict";
+//! Comprobar en front si es necesaria esta ruta
+
 const repository = require("../../repositories/users-repository");
 
 async function getUserRatingsNoValorated(req, res, next) {
@@ -7,7 +9,7 @@ async function getUserRatingsNoValorated(req, res, next) {
 
     const noValorated = await repository.notValorate(id);
 
-    res.send(noValorated);
+    res.send({ noValorated });
   } catch (error) {
     next(error);
   }

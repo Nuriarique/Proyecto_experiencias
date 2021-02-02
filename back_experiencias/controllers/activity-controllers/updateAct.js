@@ -2,6 +2,7 @@
 
 const Joi = require("joi").extend(require("@joi/date"));
 const repository = require("../../repositories/activity-repository");
+const helpers = require("../../helpers/helpers");
 
 async function updateAct(req, res, next) {
   try {
@@ -9,13 +10,12 @@ async function updateAct(req, res, next) {
     const {
       name_act,
       type_act,
-      photo_act,
       description_act,
       summary_act,
       places,
       price,
       d_start,
-      localition,
+      location,
     } = req.body;
 
     // Validaciones
@@ -23,26 +23,24 @@ async function updateAct(req, res, next) {
       actId: Joi.number().positive(),
       name_act: Joi.string().required(),
       type_act: Joi.string().required(),
-      photo_act: Joi.string().required(),
       description_act: Joi.string().required(),
       summary_act: Joi.string().required(),
       places: Joi.number().positive().min(1).required(),
       price: Joi.number().positive().min(1).precision(2).required(),
       d_start: Joi.date().format("YYYY-MM-DD").required(),
-      localition: Joi.string().required(),
+      location: Joi.string().required(),
     });
 
     await schema.validateAsync({
       actId,
       name_act,
       type_act,
-      photo_act,
       description_act,
       summary_act,
       places,
       price,
       d_start,
-      localition,
+      location,
     });
 
     // Buscar la actividad
@@ -53,22 +51,54 @@ async function updateAct(req, res, next) {
       throw error;
     }
 
-    // Actualizamosen la bbdd
+    // Actualizamos en la bbdd
     await repository.updateAct(
       name_act,
       type_act,
-      photo_act,
       description_act,
       summary_act,
       places,
       price,
       d_start,
-      localition,
+      location,
       actId
     );
+
+    //Actualizmos las fotos
+    if (req.files) {
+      const fotos = Object.entries(req.files);
+
+      if (fotos.length > 5) {
+        const error = new Error(
+          "Superado el número de fotos que se pueden subir. Máximo 5 fotos."
+        );
+        error.status = 500;
+        throw error;
+      }
+
+      for (const [name, value] of fotos) {
+        const saveFileName = await helpers.tuneaGuardarEnCarpetaDevuelveRuta(
+          value,
+          1024
+        );
+
+        const nombreImagen = await repository.getImages(name, actId);
+        console.log(nombreImagen[name]);
+
+        const imgString = JSON.stringify(nombreImagen[name]);
+        console.log(imgString);
+
+        if (nombreImagen) {
+          await helpers.deletePhoto(nombreImagen[name]);
+        }
+
+        await repository.createPhotosAct(name, saveFileName, actId);
+      }
+    }
+
     const actUpdated = await repository.getActivity(actId);
 
-    res.send(actUpdated);
+    res.send({ actUpdated });
   } catch (error) {
     next(error);
   }

@@ -12,15 +12,16 @@ async function getUserByEmail(email) {
   return user[0];
 }
 
-async function createUser(nombre, fecha, email, password) {
+async function createUser(nombre, fecha, email, password, verificationCode) {
   const connection = await pool.getConnection();
   const query =
-    "INSERT INTO users(first_name,b_day,email,passwords) values (?,?,?,?)";
+    "INSERT INTO users(first_name,b_day,email,passwords, veification_code) values (?,?,?,?,?)";
   const [create] = await connection.query(query, [
     nombre,
     fecha,
     email,
     password,
+    verificationCode,
   ]);
 
   connection.release();
@@ -110,6 +111,15 @@ async function insertRate(rating, id_user, id_activity) {
   return user;
 }
 
+async function changeStatus(code) {
+  const connection = await pool.getConnection();
+  const query =
+    "UPDATE users SET status=1, veification_code=NULL WHERE veification_code=?";
+
+  const [user] = await connection.query(query, code);
+  return user;
+}
+
 module.exports = {
   getUserByEmail,
   createUser,
@@ -121,4 +131,5 @@ module.exports = {
   notValorate,
   valorate,
   insertRate,
+  changeStatus,
 };

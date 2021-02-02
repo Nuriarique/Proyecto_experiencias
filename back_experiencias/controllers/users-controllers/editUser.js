@@ -2,11 +2,12 @@
 
 const Joi = require("joi");
 const repository = require("../../repositories/users-repository");
+const helpers = require("../../helpers/helpers");
 
 async function editUser(req, res, next) {
   try {
-    const { id } = req.params;
-    const { nombre, apellido, dni, tlfn, bio, foto, sexo } = req.body;
+    const { id } = req.params; //req.auth
+    const { nombre, apellido, dni, tlfn, bio, sexo } = req.body;
 
     const schema = Joi.object({
       id: Joi.number().positive(),
@@ -15,7 +16,6 @@ async function editUser(req, res, next) {
       dni: Joi.string().min(9).max(9),
       tlfn: Joi.number().max(999999999).positive(),
       bio: Joi.string(),
-      foto: Joi.string(),
       sexo: Joi.string().min(1).max(1),
     });
     await schema.validateAsync({
@@ -25,7 +25,6 @@ async function editUser(req, res, next) {
       dni,
       tlfn,
       bio,
-      foto,
       sexo,
     });
 
@@ -36,6 +35,25 @@ async function editUser(req, res, next) {
       error.status = 404;
       throw error;
     }
+
+    // Subir imagen de usuario
+    let savedFileName = user.photo_user;
+
+    // si recibimos info
+    if (req.files && req.files.photo) {
+      savedFileName = await helpers.tuneaGuardarEnCarpetaDevuelveRuta(
+        req.files.photo,
+        500
+      );
+
+      //si el usuario ya tiene una foto en la db: la eliminamos del directorio
+      if (user && user.photo_user) {
+        await helpers.deletePhoto(user.photo_user);
+      }
+    }
+
+    const foto = savedFileName;
+
     // actualizamos en la bd
     await repository.editUsers(
       nombre,
@@ -48,7 +66,7 @@ async function editUser(req, res, next) {
       id
     );
     const userUpdate = await repository.getUsersById(id);
-    res.send(userUpdate);
+    res.send({ userUpdate });
   } catch (error) {
     next(error);
   }

@@ -1,16 +1,15 @@
 "use strict";
-
 const Joi = require("joi").extend(require("@joi/date"));
 const repository = require("../../repositories/users-repository");
 const { differenceInYears } = require("date-fns");
 const bcrypt = require("bcryptjs");
-const mailgun = require("mailgun-js");
-const { API_KEY_MAILGUN, DOMAIN_MAILGUN } = process.env;
+const helpers = require("../../helpers/helpers");
+const { FRONT_URL } = process.env;
 
 async function register(req, res, next) {
   try {
     const { nombre, fechaNac, email, password } = req.body;
-    
+
     const schema = Joi.object({
       nombre: Joi.string().required(),
       fechaNac: Joi.date().format("YYYY-MM-DD").required(),
@@ -19,6 +18,9 @@ async function register(req, res, next) {
       repeatPassword: Joi.ref("password"),
     });
     await schema.validateAsync(req.body);
+
+    //generar código de verificación
+    const verificationCode = Math.ceil(Math.random() * 1000000000000000);
 
     // comprobamos edad +18
     const now = new Date();
@@ -44,25 +46,22 @@ async function register(req, res, next) {
       nombre,
       fechaNac,
       email,
-      passwordHash
+      passwordHash,
+      verificationCode
     );
 
+    const validationURL = `http://${FRONT_URL}validate/?code=${verificationCode}&email=${email}`;
+
     //enviar email
-    const mg = mailgun({ apiKey: API_KEY_MAILGUN, domain: DOMAIN_MAILGUN });
-    const data = {
-      from: "Excited User <me@samples.mailgun.org>",
-      to: "nuriarique@gmail.com",
-      subject: "Hello",
-      text: "Testing some Mailgun awesomness!",
-    };
-    await mg.messages().send(data);
+    const subject = "Confirm your email";
+    const text = validationURL;
+
+    await helpers.sendEmail(subject, text);
 
     res.send({ userId: id.insertId });
   } catch (error) {
     next(error);
-  } 
+  }
 }
 
 module.exports = register;
-
-

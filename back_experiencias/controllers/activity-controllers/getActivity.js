@@ -5,12 +5,12 @@ const { isBefore } = require("date-fns");
 
 async function getActivity(req, res, next) {
   try {
-    const { id } = req.params;
+    const { actId } = req.params;
     const schema = Joi.number().positive();
-    await schema.validateAsync(id);
+    await schema.validateAsync(actId);
 
     //Comprobamos que la actividad existe en la bd
-    const act = await repository.getActivity(id);
+    const act = await repository.getActivity(actId);
     if (!act) {
       const error = new Error("No existe la actividad");
       error.status = 404;
@@ -31,7 +31,7 @@ async function getActivity(req, res, next) {
     const ratings = await repository.getRating(type);
 
     //Plazas disponibles
-    const places = await repository.getPlaces(id);
+    const places = await repository.getPlaces(actId);
 
     res.send({ act: act, valoraciones: ratings, plazas: places });
   } catch (error) {

@@ -8,13 +8,12 @@ const jwt = require("jsonwebtoken");
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-    
+
     const schema = Joi.object({
       email: Joi.string().email().required(),
       password: Joi.string().required(),
     });
     await schema.validateAsync(req.body);
-
 
     // comprobar si el mail existe
     const user = await repository.getUserByEmail(email);
@@ -36,6 +35,13 @@ async function login(req, res, next) {
       throw error;
     }
 
+    // comprobar si está activo
+    if (user.status === 0) {
+      const error = new Error("Usuario no verificado, revisa tu email.");
+      error.status = 400;
+      throw error;
+    }
+
     // generar el token
     const tokenPayLoad = {
       id: user.id,
@@ -47,7 +53,7 @@ async function login(req, res, next) {
       expiresIn: "30d",
     });
 
-    res.send(token);
+    res.send({ token });
   } catch (error) {
     next(error);
   }

@@ -14,7 +14,7 @@ async function getUserById(req, res, next) {
       throw error;
     }
 
-    res.send(user);
+    res.send({ user });
   } catch (error) {
     next(error);
   }

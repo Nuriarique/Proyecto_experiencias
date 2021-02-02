@@ -9,6 +9,7 @@ async function getUserBookings(req, res, next) {
     // Filtramos para que solo nos muestre 2
     const enjoieds = await repository.getEnjoied(id);
     const enjoiedFilter = enjoieds.filter((enjoied, index) => index < 2);
+    
     const enjoys = await repository.getEnjoy(id);
     const enjoyFilter = enjoys.filter((enjoy, index) => index < 2);
 

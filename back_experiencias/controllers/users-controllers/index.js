@@ -10,6 +10,7 @@ const getUserRatings = require("./getUserRatings");
 const getUserRatingsValorated = require("./getUserRatingsValorated");
 const getUserRatingsNoValorated = require("./getUserRatingsNoValorated");
 const rate = require("./rate");
+const validateUser = require("./validateUser");
 
 module.exports = {
   register,
@@ -23,4 +24,5 @@ module.exports = {
   getUserRatingsValorated,
   getUserRatingsNoValorated,
   rate,
+  validateUser,
 };

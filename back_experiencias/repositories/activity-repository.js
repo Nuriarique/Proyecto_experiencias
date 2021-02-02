@@ -6,27 +6,25 @@ const pool = db.getPool();
 async function createAct(
   name_act,
   type_act,
-  photo_act,
   description_act,
   summary_act,
   places,
   price,
   d_start,
-  localition
+  location
 ) {
   const connection = await pool.getConnection();
   const query =
-    "INSERT INTO  activity(name_act,type_act,photo_act,description_act,summary_act,places,price,d_start,localition) values (?,?,?,?,?,?,?,?,?)";
+    "INSERT INTO  activity(name_act,type_act,description_act,summary_act,places,price,d_start,location) values (?,?,?,?,?,?,?,?)";
   const [act] = await connection.query(query, [
     name_act,
     type_act,
-    photo_act,
     description_act,
     summary_act,
     places,
     price,
     d_start,
-    localition,
+    location,
   ]);
   connection.release();
   return act.insertId;
@@ -55,7 +53,7 @@ async function getActsAdminFilter(type) {
 async function getActivity(id) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT name_act, type_act, photo_act, description_act, summary_act, places, price, d_start, localition FROM activity WHERE id_activity = ?";
+    "SELECT name_act, type_act, photo_act, description_act, summary_act, places, price, d_start, location, photo2, photo3, photo4, photo5 FROM activity WHERE id_activity = ?";
 
   const [act] = await connection.query(query, id);
 
@@ -66,7 +64,7 @@ async function getActivity(id) {
 async function getRating(type_act) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT u.photo_user, c.rating FROM users u JOIN register_contract_activity c ON u.id = c.id_user JOIN activity a ON c.id_activity = a.id_activity WHERE a.type_act = ? LIMIT  6;";
+    "SELECT u.photo_user, c.rating, u.first_name FROM users u JOIN register_contract_activity c ON u.id = c.id_user JOIN activity a ON c.id_activity = a.id_activity WHERE a.type_act = ? LIMIT  6;";
 
   const [rat] = await connection.query(query, type_act);
 
@@ -88,28 +86,26 @@ async function getPlaces(id_activity) {
 async function updateAct(
   name_act,
   type_act,
-  photo_act,
   description_act,
   summary_act,
   places,
   price,
   d_start,
-  localition,
+  location,
   id_activity
 ) {
   const connection = await pool.getConnection();
   const query =
-    "UPDATE activity SET name_act = ?, type_act = ?, photo_act = ?, description_act = ?, summary_act = ?, places = ?, price = ?, d_start = ?, localition = ? WHERE id_activity = ?";
+    "UPDATE activity SET name_act = ?, type_act = ?, description_act = ?, summary_act = ?, places = ?, price = ?, d_start = ?, location = ? WHERE id_activity = ?";
   const [act] = await connection.query(query, [
     name_act,
     type_act,
-    photo_act,
     description_act,
     summary_act,
     places,
     price,
     d_start,
-    localition,
+    location,
     id_activity,
   ]);
 
@@ -126,7 +122,26 @@ async function deleteAct(id) {
   return act[0];
 }
 
-async function contract(id) {
+async function getEmailsActivity(id) {
+  const connection = await pool.getConnection();
+  const query =
+    "SELECT email FROM register_contract_activity R JOIN users U ON R.id_user = U.id WHERE id_activity = ?";
+  const [emails] = await connection.query(query, id);
+
+  connection.release();
+  return emails;
+}
+
+async function deleteReferences(id) {
+  const connection = await pool.getConnection();
+  const query = "DELETE FROM register_contract_activity WHERE id_activity = ?";
+  const [act] = await connection.query(query, id);
+
+  connection.release();
+  return act[0];
+}
+
+async function preContract(id) {
   const connection = await pool.getConnection();
   const query =
     "SELECT summary_act AS Resumen, name_act AS Actividad, DATE_FORMAT(d_start, GET_FORMAT(DATE, 'EUR')) AS Fecha FROM activity WHERE id_activity = ?";
@@ -155,6 +170,97 @@ async function activityBeforeToday(id) {
   connection.release();
   return act[0];
 }
+
+async function searchAct(data) {
+  const connection = await pool.getConnection();
+
+  const { location, type, direction } = data;
+
+  // nombramos la query base
+  let query = "SELECT name_act, photo_act, d_start FROM activity";
+
+  //establecemos los paramaetros de busqueda
+  const params = [];
+
+  //establecemos criterio de dirección de búsqueda
+  const orderDirection =
+    (direction && direction.toLowerCase()) === "desc" ? "DESC" : "ASC";
+
+  //construimos query multibusqueda
+  if (location || type) {
+    //establecemos condiciones para la query
+    const conditions = [];
+
+    if (location) {
+      conditions.push("location=?");
+      params.push(`${location}`);
+    }
+    if (type) {
+      conditions.push("type_act=?");
+      params.push(`${type}`);
+    }
+
+    //Finalizamos construcción de la query
+    query = `${query} WHERE ${conditions.join(
+      ` AND `
+    )}AND d_start > current_date() ORDER BY d_start ${orderDirection}`;
+  } else {
+    query = `${query} WHERE d_start > current_date() ORDER BY d_start ${orderDirection}`;
+  }
+
+  console.log(query);
+  const [result] = await connection.query(query, params);
+
+  connection.release();
+  return result;
+}
+
+async function listTypeAct() {
+  const connection = await pool.getConnection();
+  const query = "SELECT DISTINCT type_act FROM activity";
+  const [typeAct] = await connection.query(query);
+
+  connection.release();
+  return typeAct;
+}
+
+async function listLocation() {
+  const connection = await pool.getConnection();
+  const query = "SELECT DISTINCT location from activity";
+  const [locations] = await connection.query(query);
+
+  connection.release();
+  return locations;
+}
+
+async function bestActivities() {
+  const connection = await pool.getConnection();
+  const query =
+    "SELECT a.photo_act, a.name_act FROM activity a JOIN register_contract_activity r ON a.id_activity = r.id_activity GROUP BY r.id_activity HAVING TRUNCATE(AVG(r.rating), 1) ORDER BY TRUNCATE(AVG(r.rating), 1) DESC;";
+  const [rating] = await connection.query(query);
+
+  connection.release();
+  return rating;
+}
+
+async function createPhotosAct(queryName, queryValue, id) {
+  const connection = await pool.getConnection();
+  const query = `UPDATE activity SET ${queryName} = ? WHERE id_activity = ?`;
+  const [photos] = await connection.query(query, [queryValue, id]);
+
+  connection.release();
+  return photos;
+}
+
+async function getImages(column, id) {
+  const connection = await pool.getConnection();
+  const query = `SELECT ${column} FROM activity WHERE id_activity = ?`;
+  const [img] = await connection.query(query, id);
+
+  connection.release();
+  return img;
+}
+
 module.exports = {
   createAct,
   getActsAdmin,
@@ -164,7 +270,15 @@ module.exports = {
   deleteAct,
   getRating,
   getPlaces,
-  contract,
+  preContract,
   confirmContract,
   activityBeforeToday,
+  getEmailsActivity,
+  deleteReferences,
+  searchAct,
+  listTypeAct,
+  listLocation,
+  bestActivities,
+  createPhotosAct,
+  getImages,
 };
