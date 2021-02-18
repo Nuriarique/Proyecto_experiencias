@@ -9,7 +9,7 @@ const { FRONT_URL } = process.env;
 async function register(req, res, next) {
   try {
     const { nombre, fechaNac, email, password } = req.body;
-
+    7;
     const schema = Joi.object({
       nombre: Joi.string().required(),
       fechaNac: Joi.date().format("YYYY-MM-DD").required(),
@@ -50,11 +50,11 @@ async function register(req, res, next) {
       verificationCode
     );
 
-    const validationURL = `http://${FRONT_URL}validate/?code=${verificationCode}&email=${email}`;
+    const validationURL = `http://${FRONT_URL}/?code=${verificationCode}&email=${email}`;
 
     //enviar email
     const subject = "Confirm your email";
-    const text = validationURL;
+    const text = `haz click <a href=${validationURL}> aquí </a> para validar tu cuenta`;
 
     await helpers.sendEmail(subject, text);
 

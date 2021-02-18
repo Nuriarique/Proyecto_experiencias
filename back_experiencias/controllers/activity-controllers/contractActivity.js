@@ -1,7 +1,6 @@
 "use strict";
 const Joi = require("joi");
 const repository = require("../../repositories/activity-repository");
-const { isBefore } = require("date-fns");
 
 async function contractActivity(req, res, next) {
   try {
@@ -18,23 +17,22 @@ async function contractActivity(req, res, next) {
     }
 
     // Comprobamos que la actividad no ha pasado de fecha
-    const now = new Date();
-    const before = isBefore(act.d_start, now);
+    const before = await repository.activityBeforeToday(actId);
     if (before) {
       const error = new Error("Actividad no disponible, ya ha pasado la fecha");
       error.status = 400;
       throw error;
-    } 
+    }
 
     //Si estan todas las plazas ocupadas no se puede contratar
     const places = await repository.getPlaces(actId);
-    if ((places.PlazasLibres = 0)) {
+    if (places.PlazasLibres === 0) {
       const error = new Error("No quedan plazas libres");
       error.status = 400;
       throw error;
     }
 
-    const resumen = await repository.preContract(actId);
+    const [resumen] = await repository.preContract(actId);
     res.send({ resumen });
   } catch (error) {
     next(error);

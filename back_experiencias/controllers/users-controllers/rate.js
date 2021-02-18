@@ -5,7 +5,8 @@ const aRepository = require("../../repositories/activity-repository");
 
 async function rate(req, res, next) {
   try {
-    const { id, actId, rating } = req.params;
+    const { actId, rating } = req.params;
+    const { id } = req.auth;
     const schema = Joi.number().min(1).max(5).integer().required();
     await schema.validateAsync(rating);
 
@@ -19,13 +20,14 @@ async function rate(req, res, next) {
 
     //comprobar si la act ya esta valorada
     if (getContract.rating) {
-      const error = new Error("🖕🏼");
+      const error = new Error("La actividad ya está valorada🖕🏼");
       error.status = 400;
       throw error;
     }
 
     //comprobar si ya se ha realizado la actividad
     const enjoied = await aRepository.activityBeforeToday(actId);
+
     if (!enjoied) {
       const error = new Error(
         "Aun no se puede realizar la valoración, no se ha realizado la actividad"

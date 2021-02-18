@@ -37,8 +37,8 @@ async function deleteAct(req, res, next) {
       const mg = mailgun({ apiKey: API_KEY_MAILGUN, domain: DOMAIN_MAILGUN });
       const data = {
         from: "Excited User <me@samples.mailgun.org>",
-        to: "nuriarique@gmail.com",
-        subject: "Cancelación de actividad :(",
+        to: "nuriarique@gmail.com, martinvarod@gmail.com ",
+        subject: `${act.name_act} -Cancelación de actividad :(`,
         text:
           "Sentimos comunicarle que la actividad que ha contradado ha sido cancelada.",
       };

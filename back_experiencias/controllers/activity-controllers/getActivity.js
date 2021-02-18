@@ -1,7 +1,6 @@
 "use strict";
 const Joi = require("joi");
 const repository = require("../../repositories/activity-repository");
-const { isBefore } = require("date-fns");
 
 async function getActivity(req, res, next) {
   try {
@@ -18,8 +17,8 @@ async function getActivity(req, res, next) {
     }
 
     // Comprobamos que la actividad no ha pasado de fecha
-    const now = new Date();
-    const before = isBefore(act.d_start, now);
+    const before = await repository.activityBeforeToday(actId);
+
     if (before) {
       const error = new Error("Actividad no disponible, ya ha pasado la fecha");
       error.status = 400;
@@ -33,7 +32,15 @@ async function getActivity(req, res, next) {
     //Plazas disponibles
     const places = await repository.getPlaces(actId);
 
-    res.send({ act: act, valoraciones: ratings, plazas: places });
+    //Fotos de los usuarios de las plazas ocupadas
+    const photoPlaces = await repository.getPhotoPlaces(actId);
+
+    res.send({
+      act: act,
+      valoraciones: ratings,
+      plazas: places,
+      fotos: photoPlaces,
+    });
   } catch (error) {
     next(error);
   }

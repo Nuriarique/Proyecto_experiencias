@@ -1,12 +1,11 @@
 "use strict";
-const Joi = require("joi");
 const repository = require("../../repositories/users-repository");
 
 async function getUserById(req, res, next) {
   try {
-    const userId = req.auth.id;
+    const { id } = req.auth;
 
-    const user = await repository.getUsersById(userId);
+    const user = await repository.getUsersById(id);
 
     if (!user) {
       const error = new Error("Usuario no existe");

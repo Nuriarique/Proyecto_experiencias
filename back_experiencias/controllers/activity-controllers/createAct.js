@@ -2,6 +2,7 @@
 const Joi = require("joi").extend(require("@joi/date"));
 const repository = require("../../repositories/activity-repository");
 const helpers = require("../../helpers/helpers");
+const { validPhotoNames } = require("./shared");
 
 async function createAct(req, res, next) {
   try {
@@ -52,11 +53,13 @@ async function createAct(req, res, next) {
       }
 
       for (const [name, value] of fotos) {
-        const saveFileName = await helpers.tuneaGuardarEnCarpetaDevuelveRuta(
-          value,
-          1024
-        );
-        await repository.createPhotosAct(name, saveFileName, act);
+        if (validPhotoNames.includes(name)) {
+          const saveFileName = await helpers.tuneaGuardarEnCarpetaDevuelveRuta(
+            value,
+            1024
+          );
+          await repository.createPhotosAct(name, saveFileName, act);
+        }
       }
     }
 

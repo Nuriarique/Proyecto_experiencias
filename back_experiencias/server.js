@@ -6,6 +6,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const fileUpload = require("express-fileupload");
+const cors = require("cors");
 
 const { SERVER_PORT, NODE_ENV } = process.env;
 
@@ -14,7 +15,7 @@ const middlewares = require("./middlewares");
 
 //declaraciones
 const app = express();
-
+app.use(cors());
 // enable files upload
 app.use(fileUpload());
 
@@ -25,37 +26,60 @@ if (NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-//middlewares -- Esto se debe cambiar más adelante (el .json)!!!
+//middlewares
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //rutas usuario
 app.post("/register", usersControllers.register);
 app.put("/validate", usersControllers.validateUser);
 app.post("/login", usersControllers.login);
 app.get("/user/data", middlewares.validateAuth, usersControllers.getUserById);
-app.put("/user/:id/data", usersControllers.editUser); //auth
-app.get("/user/:id/booking", usersControllers.getUserBookings); //auth
-app.get("/user/:id/booking/enjoied", usersControllers.getUserBookingsEnjoied); //auth
+app.put("/user/data", middlewares.validateAuth, usersControllers.editUser);
 app.get(
-  "/user/:id/booking/noEnjoied",
-  usersControllers.getUserBookingsNoEnjoied
-); //auth
-app.get("/user/:id/rate", usersControllers.getUserRatings); //auth
-app.get("/user/:id/rate/valorated", usersControllers.getUserRatingsValorated); //auth
+  "/user/booking",
+  middlewares.validateAuth,
+  usersControllers.getUserBookings
+);
 app.get(
-  "/user/:id/rate/noValorated",
-  usersControllers.getUserRatingsNoValorated
-); //auth
-app.put("/user/:id/rate/:actId/:rating", usersControllers.rate); //auth
+  "/user/rate",
+  middlewares.validateAuth,
+  usersControllers.getUserRatings
+);
+app.put(
+  "/user/rate/:actId/:rating",
+  middlewares.validateAuth,
+  usersControllers.rate
+);
 
-//rutas admin // incluir middle: validateAuth, isAdmin  en las inferiores
-app.get("/admin/activities", activityControllers.getActivitiesAdmin);
-app.post("/admin/createAct", activityControllers.createAct);
-app.put("/admin/:actId", activityControllers.updateAct);
-app.delete("/admin/:actId", activityControllers.deleteAct);
+//rutas admin
+app.get(
+  "/admin/activities",
+  middlewares.validateAuth,
+  middlewares.isAdmin,
+  activityControllers.getActivitiesAdmin
+);
+app.post(
+  "/admin/createAct",
+  middlewares.validateAuth,
+  middlewares.isAdmin,
+  activityControllers.createAct
+);
+app.put(
+  "/admin/:actId",
+  middlewares.validateAuth,
+  middlewares.isAdmin,
+  activityControllers.updateAct
+);
+app.delete(
+  "/admin/:actId",
+  middlewares.validateAuth,
+  middlewares.isAdmin,
+  activityControllers.deleteAct
+);
 
 //rutas actividad
-app.get("/", activityControllers.home, activityControllers.search); //datos ciudades emblematicas en el front)
+app.get("/", activityControllers.home);
 app.get("/search", activityControllers.search);
 app.get("/activity/:actId", activityControllers.getActivity);
 app.get(
@@ -64,9 +88,10 @@ app.get(
   activityControllers.contractActivity
 );
 app.post(
-  "/activity/:userId/:actId/contract",
+  "/activity/:actId/contract",
+  middlewares.validateAuth,
   activityControllers.confirmContract
-); //auth
+);
 
 //middleware gestión de errores
 app.use(middlewares.errors);

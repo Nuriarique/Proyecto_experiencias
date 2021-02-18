@@ -6,17 +6,17 @@ const helpers = require("../../helpers/helpers");
 
 async function editUser(req, res, next) {
   try {
-    const { id } = req.params; //req.auth
+    const { id } = req.auth;
     const { nombre, apellido, dni, tlfn, bio, sexo } = req.body;
 
     const schema = Joi.object({
       id: Joi.number().positive(),
       nombre: Joi.string().required(),
-      apellido: Joi.string(),
-      dni: Joi.string().min(9).max(9),
-      tlfn: Joi.number().max(999999999).positive(),
-      bio: Joi.string(),
-      sexo: Joi.string().min(1).max(1),
+      apellido: Joi.string().allow(""),
+      dni: Joi.string().min(9).max(9).required(),
+      tlfn: Joi.number().max(999999999).allow(""),
+      bio: Joi.string().allow(""),
+      sexo: Joi.string().allow(""),
     });
     await schema.validateAsync({
       id,

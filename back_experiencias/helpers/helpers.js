@@ -14,9 +14,11 @@ async function sendEmail(subject, text) {
     const mg = mailgun({ apiKey: API_KEY_MAILGUN, domain: DOMAIN_MAILGUN });
     const data = {
       from: "Excited User <me@samples.mailgun.org>",
-      to: "nuriarique@gmail.com",
+      to: "nuriarique@gmail.com, martinvarod@gmail.com ",
       subject: subject,
       text: text,
+      html: `<h1>Experiencias </h1>
+      <p>${text}</p>`,
     };
     await mg.messages().send(data);
   } catch (error) {
@@ -35,7 +37,7 @@ async function tuneaGuardarEnCarpetaDevuelveRuta(uploadPhoto, width) {
     throw error;
   }
 
-  // Aegurarse de que la ruta existe
+  // Asegurarse de que la ruta existe
   await fs.ensureDir(imageUploadPath);
 
   //generar un nombre único

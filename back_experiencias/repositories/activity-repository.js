@@ -33,7 +33,7 @@ async function createAct(
 async function getActsAdmin() {
   const connection = await pool.getConnection();
   const query =
-    "SELECT id_activity, name_act, d_start, type_act FROM activity ORDER BY d_start ASC";
+    "SELECT id_activity, name_act,DATE_FORMAT(d_start, '%d/%m/%Y') AS fecha, type_act FROM activity ORDER BY d_start ASC";
   const [act] = await connection.query(query);
 
   connection.release();
@@ -43,7 +43,7 @@ async function getActsAdmin() {
 async function getActsAdminFilter(type) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT id_activity, name_act, d_start, type_act FROM activity WHERE type_act LIKE ? ORDER BY d_start ASC";
+    "SELECT id_activity, name_act, DATE_FORMAT(d_start, '%d/%m/%Y') AS fecha FROM activity WHERE type_act LIKE ? ORDER BY d_start ASC";
   const [act] = await connection.query(query, type);
 
   connection.release();
@@ -53,7 +53,7 @@ async function getActsAdminFilter(type) {
 async function getActivity(id) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT name_act, type_act, photo_act, description_act, summary_act, places, price, d_start, location, photo2, photo3, photo4, photo5 FROM activity WHERE id_activity = ?";
+    "SELECT name_act, type_act, photo_act, description_act, summary_act, places, price, d_start AS fecha, location, photo2, photo3, photo4, photo5 FROM activity WHERE id_activity = ?";
 
   const [act] = await connection.query(query, id);
 
@@ -64,7 +64,7 @@ async function getActivity(id) {
 async function getRating(type_act) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT u.photo_user, c.rating, u.first_name FROM users u JOIN register_contract_activity c ON u.id = c.id_user JOIN activity a ON c.id_activity = a.id_activity WHERE a.type_act = ? LIMIT  6;";
+    "SELECT u.photo_user, c.rating, u.first_name FROM users u JOIN register_contract_activity c ON u.id = c.id_user JOIN activity a ON c.id_activity = a.id_activity WHERE a.type_act = ? AND rating IS NOT NULL LIMIT  6";
 
   const [rat] = await connection.query(query, type_act);
 
@@ -75,12 +75,23 @@ async function getRating(type_act) {
 async function getPlaces(id_activity) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT COUNT(c.id_activity) AS PlazasOcupadas, a.places - COUNT(c.id_activity) AS PlazasLibres FROM activity a JOIN register_contract_activity c ON a.id_activity = c.id_activity WHERE c.id_activity = ? GROUP BY c.id_activity;";
+    "SELECT COUNT(c.id_activity) AS PlazasOcupadas, a.places - COUNT(c.id_activity) AS PlazasLibres FROM activity a LEFT JOIN register_contract_activity c ON a.id_activity = c.id_activity WHERE a.id_activity = ? GROUP BY a.id_activity";
 
   const [places] = await connection.query(query, id_activity);
 
   connection.release();
   return places[0];
+}
+
+async function getPhotoPlaces(id_activity) {
+  const connection = await pool.getConnection();
+  const query =
+    "SELECT u.id AS id, u.photo_user AS photo FROM users u LEFT JOIN register_contract_activity c ON u.id = c.id_user  WHERE c.id_activity = ?";
+
+  const [photos] = await connection.query(query, id_activity);
+
+  connection.release();
+  return photos;
 }
 
 async function updateAct(
@@ -144,7 +155,7 @@ async function deleteReferences(id) {
 async function preContract(id) {
   const connection = await pool.getConnection();
   const query =
-    "SELECT summary_act AS Resumen, name_act AS Actividad, DATE_FORMAT(d_start, GET_FORMAT(DATE, 'EUR')) AS Fecha FROM activity WHERE id_activity = ?";
+    "SELECT summary_act AS Resumen, name_act AS Actividad, DATE_FORMAT(d_start, '%d/%m/%Y') AS fecha, price FROM activity WHERE id_activity = ?";
   const [act] = await connection.query(query, id);
 
   connection.release();
@@ -177,7 +188,8 @@ async function searchAct(data) {
   const { location, type, direction } = data;
 
   // nombramos la query base
-  let query = "SELECT name_act, photo_act, d_start FROM activity";
+  let query =
+    "SELECT name_act, photo_act,DATE_FORMAT(d_start, '%d/%m/%Y') AS fecha, id_activity FROM activity";
 
   //establecemos los paramaetros de busqueda
   const params = [];
@@ -208,7 +220,6 @@ async function searchAct(data) {
     query = `${query} WHERE d_start > current_date() ORDER BY d_start ${orderDirection}`;
   }
 
-  console.log(query);
   const [result] = await connection.query(query, params);
 
   connection.release();
@@ -217,7 +228,8 @@ async function searchAct(data) {
 
 async function listTypeAct() {
   const connection = await pool.getConnection();
-  const query = "SELECT DISTINCT type_act FROM activity";
+  const query =
+    "SELECT DISTINCT type_act FROM activity WHERE d_start > current_date()";
   const [typeAct] = await connection.query(query);
 
   connection.release();
@@ -226,7 +238,8 @@ async function listTypeAct() {
 
 async function listLocation() {
   const connection = await pool.getConnection();
-  const query = "SELECT DISTINCT location from activity";
+  const query =
+    "SELECT DISTINCT location from activity WHERE d_start > current_date()";
   const [locations] = await connection.query(query);
 
   connection.release();
@@ -236,7 +249,7 @@ async function listLocation() {
 async function bestActivities() {
   const connection = await pool.getConnection();
   const query =
-    "SELECT a.photo_act, a.name_act FROM activity a JOIN register_contract_activity r ON a.id_activity = r.id_activity GROUP BY r.id_activity HAVING TRUNCATE(AVG(r.rating), 1) ORDER BY TRUNCATE(AVG(r.rating), 1) DESC;";
+    "SELECT a.photo_act AS photo, a.name_act AS name, a.type_act AS type, a.id_activity AS id FROM activity a JOIN register_contract_activity r ON a.id_activity = r.id_activity GROUP BY r.id_activity HAVING TRUNCATE(AVG(r.rating), 1) ORDER BY TRUNCATE(AVG(r.rating), 1) DESC;";
   const [rating] = await connection.query(query);
 
   connection.release();
@@ -258,7 +271,7 @@ async function getImages(column, id) {
   const [img] = await connection.query(query, id);
 
   connection.release();
-  return img;
+  return img[0][column];
 }
 
 module.exports = {
@@ -281,4 +294,5 @@ module.exports = {
   bestActivities,
   createPhotosAct,
   getImages,
+  getPhotoPlaces,
 };

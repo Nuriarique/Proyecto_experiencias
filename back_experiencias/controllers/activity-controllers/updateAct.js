@@ -82,14 +82,10 @@ async function updateAct(req, res, next) {
           1024
         );
 
-        const nombreImagen = await repository.getImages(name, actId);
-        console.log(nombreImagen[name]);
+        const oldPhoto = await repository.getImages(name, actId);
 
-        const imgString = JSON.stringify(nombreImagen[name]);
-        console.log(imgString);
-
-        if (nombreImagen) {
-          await helpers.deletePhoto(nombreImagen[name]);
+        if (oldPhoto) {
+          await helpers.deletePhoto(oldPhoto);
         }
 
         await repository.createPhotosAct(name, saveFileName, actId);
